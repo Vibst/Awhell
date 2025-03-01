@@ -18,24 +18,5 @@ public class SocialmedianetworkApplication {
 		SpringApplication.run(SocialmedianetworkApplication.class, args);
 	}
 	
-	@KafkaListener(topics = "SocialNetwork", groupId = "SocialNetworkId")
-    public void recieveMessageInKafka(String msg){
-try {
-        ObjectMapper objectMapper = new ObjectMapper();
-        
-        // Try parsing as JSON
-        if (msg.startsWith("{")) {
-            Message message = objectMapper.readValue(msg, Message.class);
-            log.info("Received JSON message: {}", message);
-        } else {
-            log.info("Received plain text message: {}", msg);
-        }
-
-    } catch (JsonMappingException e) {
-        log.error("Invalid JSON format: {}", msg);
-    } catch (Exception e) {
-        log.error("Error processing message: {}", e.getMessage());
-    }
-
-}
+	
 }

@@ -5,6 +5,8 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import com.example.socialmedianetwork.socialmedianetwork.entity.Message;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -26,7 +28,8 @@ public class MessageProducerService {
                 if (exception != null) {
                     log.error("Failed to send message to Kafka", exception);
                 } else {
-                    log.info("Task status sent to Kafka topic: {}, Object: {}, result Set IS: {} ", topicName, values, sendResult);
+                    log.info("Task status sent to Kafka topic: {}, Object: {}, result Set IS: {} ", topicName, values,
+                            sendResult);
                 }
             });
 
@@ -35,11 +38,24 @@ public class MessageProducerService {
         }
     }
 
+    @KafkaListener(topics = "SocialNetwork", groupId = "SocialNetworkId")
+    public void recieveMessageInKafka(String msg) {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
 
-    // @KafkaListener(topics = "SocialNetwork", groupId = "SocialNetworkId")
-    // public void recieveMessageInKafka(Message msg){
-    //     log.info(String.format("Received: " + msg));
+            // Try parsing as JSON
+            if (msg.startsWith("{")) {
+                Message message = objectMapper.readValue(msg, Message.class);
+                log.info("Received JSON message: {}", message);
+            } else {
+                log.info("Received plain text message: {}", msg);
+            }
 
-    // }
+        } catch (JsonMappingException e) {
+            log.error("Invalid JSON format: {}", msg);
+        } catch (Exception e) {
+            log.error("Error processing message: {}", e.getMessage());
+        }
+
+    }
 }
-
