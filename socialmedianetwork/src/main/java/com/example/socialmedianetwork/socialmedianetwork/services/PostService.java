@@ -1,5 +1,6 @@
 package com.example.socialmedianetwork.socialmedianetwork.services;
 
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -7,11 +8,14 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.socialmedianetwork.socialmedianetwork.entity.Message;
 import com.example.socialmedianetwork.socialmedianetwork.entity.Post;
 import com.example.socialmedianetwork.socialmedianetwork.models.PostRequest;
 import com.example.socialmedianetwork.socialmedianetwork.repository.PostRepository;
@@ -27,7 +31,12 @@ public class PostService {
     @Autowired
     private PostRepository postRepository;
 
+    @Autowired
+    private KafkaTemplate<String, String> kafkaTemp;
+
     private Optional<Post> deleteData;
+    private Message message;
+    Post savePost = null;
 
     public Post createPost(PostRequest postRequest) {
         try {
@@ -52,11 +61,24 @@ public class PostService {
                 post.setFileUrl(saveFile(postRequest.getFile(), "Files"));
             }
 
-            Post savePost = postRepository.save(post);
+          
+            var future = kafkaTemp.send("SocialNetwork", "Successfully Create my Post in Post Service");
+
+            future.whenComplete((sendResult, exception) -> {
+                if (exception != null) {
+                    log.error("Failed to send message to Kafka", exception);
+                } else {
+                    log.info("Task status sent to Kafka topic: {}, result Set IS: {} ", "SocialNetwork",sendResult);
+                    savePost = postRepository.save(post);
+                }
+            });
+            
+            log.info("Successfully Send Notification in notification Services");
             return savePost;
 
         } catch (Exception e) {
-            throw new UnsupportedOperationException("Unimplemented method 'createPost'");
+            log.info("Errro are found in Service side: {}",e.getMessage());
+            throw new UnsupportedOperationException("Unimplemented method 'createPost'"+ e.getMessage());
         }
 
     }
