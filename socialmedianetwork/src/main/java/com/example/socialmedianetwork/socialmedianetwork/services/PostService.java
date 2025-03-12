@@ -1,6 +1,5 @@
 package com.example.socialmedianetwork.socialmedianetwork.services;
 
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -9,6 +8,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.example.socialmedianetwork.socialmedianetwork.entity.Message;
 import com.example.socialmedianetwork.socialmedianetwork.entity.Post;
+import com.example.socialmedianetwork.socialmedianetwork.helper.healthStatusHelper;
 import com.example.socialmedianetwork.socialmedianetwork.models.PostRequest;
 import com.example.socialmedianetwork.socialmedianetwork.repository.PostRepository;
 
@@ -38,9 +39,12 @@ public class PostService {
     private Message message;
     Post savePost = null;
 
+    @Autowired
+    private healthStatusHelper healthStatus;
+
     public Post createPost(PostRequest postRequest) {
         try {
-
+            Long[] isCountStatus = { 0L };
             Post post = new Post();
             post.setTextContent(postRequest.getTextContent());
             post.setJsonData(postRequest.getJsonData());
@@ -61,24 +65,32 @@ public class PostService {
                 post.setFileUrl(saveFile(postRequest.getFile(), "Files"));
             }
 
-          
             var future = kafkaTemp.send("SocialNetwork", "Successfully Create my Post in Post Service");
 
             future.whenComplete((sendResult, exception) -> {
                 if (exception != null) {
                     log.error("Failed to send message to Kafka", exception);
                 } else {
-                    log.info("Task status sent to Kafka topic: {}, result Set IS: {} ", "SocialNetwork",sendResult);
+                    log.info("Task status sent to Kafka topic: {}, result Set IS: {} ", "SocialNetwork", sendResult);
                     savePost = postRepository.save(post);
+                    isCountStatus[0] += 1;
+
+                    try {
+                        healthStatus.statusCountInPostServices("CreatePost", isCountStatus[0]);
+                    } catch (IOException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                        log.info("Error are Found in Service Side: {}",e.getMessage());
+                    }
                 }
             });
-            
+
             log.info("Successfully Send Notification in notification Services");
             return savePost;
 
         } catch (Exception e) {
-            log.info("Errro are found in Service side: {}",e.getMessage());
-            throw new UnsupportedOperationException("Unimplemented method 'createPost'"+ e.getMessage());
+            log.info("Errro are found in Service side: {}", e.getMessage());
+            throw new UnsupportedOperationException("Unimplemented method 'createPost'" + e.getMessage());
         }
 
     }
@@ -104,6 +116,7 @@ public class PostService {
                     } else {
                         if (postRequest.getVideo() != null && postRequest.getVideo().isEmpty()) {
                             String dlteFile = deleteFileFolder(postRequest.getFile(), "Video");
+
                             log.info("The Delete File Is  Videos ");
                         } else {
                             log.info("No Any One Media is Found !!!");
@@ -204,6 +217,16 @@ public class PostService {
         if (Files.exists(filePath)) {
             Files.delete(filePath);
             log.info("File {} deleted successfully from {}", file.getOriginalFilename(), folder);
+            var future = kafkaTemp.send("SocialNetwork", "Successfully deleted the Post");
+            future.whenComplete((sendResult, Exception) -> {
+                if (Exception != null) {
+                    log.info("Errro are found When Exception: {}", Exception.getMessage());
+
+                } else {
+                    log.info("Deleted Message Are Send Successfully: {}", future.toString());
+                }
+
+            });
         } else {
             log.warn("File {} not found in {}", file.getOriginalFilename(), folder);
         }

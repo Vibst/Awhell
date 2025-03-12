@@ -56,6 +56,29 @@
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
 
+		 <dependency>
+ <groupId>io.micrometer</groupId>
+ <artifactId>micrometer-core</artifactId>
+ <version>1.12.0</version>
+ </dependency>
+ <dependency>
+ <groupId>io.micrometer</groupId>
+ <artifactId>micrometer-registry-prometheus</artifactId>
+ <version>1.12.0</version> 
+ </dependency>
+
+ <dependency>
+ <groupId>io.prometheus</groupId>
+ <artifactId>simpleclient</artifactId>
+ <version>0.11.0</version> 
+ </dependency>
+
+ <dependency>
+ <groupId>io.prometheus</groupId>
+ <artifactId>simpleclient_pushgateway</artifactId>
+ <version>0.16.0</version>
+ </dependency>
+
 				<dependency>
 			<groupId>org.springframework.kafka</groupId>
 			<artifactId>spring-kafka</artifactId>
