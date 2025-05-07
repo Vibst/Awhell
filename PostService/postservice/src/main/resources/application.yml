@@ -1,0 +1,30 @@
+server:
+  port: 9098
+  
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/Post
+    username: postgres
+    password: root
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+  application:
+    name: POST-SERVICE
+
+  properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  
+app:
+ config : PostService/postservice/config/configuration
+
+logging:
+  config: PostService/postservice/config/applicationallLogs.xml
+
+
