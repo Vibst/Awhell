@@ -1,4 +1,4 @@
-package com.socilanetworking.postservice.model;
+package com.example.likecomment.model;
 
 import java.io.Serializable;
 import java.sql.Timestamp;

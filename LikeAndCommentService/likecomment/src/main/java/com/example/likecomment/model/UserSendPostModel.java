@@ -1,6 +1,7 @@
-package com.socilanetworking.postservice.model;
+package com.example.likecomment.model;
 
-import java.sql.Timestamp;
+
+import java.time.LocalDateTime;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -14,6 +15,6 @@ public class UserSendPostModel {
     private String username;
     private String userCreatedBy;
     private String userAffulatedBy;
-    private Timestamp createUser;
+    private LocalDateTime createUser;
 
 }
