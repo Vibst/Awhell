@@ -17,7 +17,7 @@ public class LikePostModel {
     @Transient
     private UserSendPostModel userLike;
 
-    private Long userLikeId;
+    private Integer userLikeId;
     private boolean likeUserActive;
 
     private boolean isActive;

@@ -35,8 +35,10 @@ public class LikePost {
     @Transient
     private UserSendPostModel userLike;
 
-    private Long userLikeId;
+    private Integer userLikeId;
     private boolean likeUserActive;
 
     private boolean isActive;
+
+    private boolean priviousLike;
 }
