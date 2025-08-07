@@ -140,6 +140,11 @@ public class Postservice {
         }
     }
 
+    public void getCountLikeId(Runnable task, boolean b) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getCountLikeId'");
+    }
+
   
 
 }

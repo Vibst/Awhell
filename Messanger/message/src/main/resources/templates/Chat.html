@@ -21,18 +21,25 @@
         let stompClient = null;
 
         function connect() {
-            const socket = new SockJS('/ws-chat');
+            const socket = new SockJS('/ws-chat'); // ✅ this must match your endpoint in Java
             stompClient = Stomp.over(socket);
 
             const username = document.getElementById('sender').value;
 
-            stompClient.connect({}, function () {
-                stompClient.subscribe('/topic/messages/' + username, function (message) {
+            stompClient.connect({}, function (frame) {
+                console.log('Connected: ' + frame);
+                const destination = '/topic/messages/' + username;
+                console.log("Subscribing to: " + destination);
+
+                stompClient.subscribe(destination, function (message) {
+                    console.log("Message received:", message.body);
                     const msg = JSON.parse(message.body);
                     const li = document.createElement('li');
                     li.textContent = msg.sender + ": " + msg.content;
                     document.getElementById('chat').appendChild(li);
                 });
+            }, function (error) {
+                console.error('Connection error:', error);
             });
         }
 
@@ -42,8 +49,9 @@
             const content = document.getElementById('message').value;
 
             if (!stompClient || !stompClient.connected) {
+                console.warn('Not connected yet. Trying again...');
                 connect();
-                setTimeout(() => sendMessage(), 500);
+                setTimeout(() => sendMessage(), 500); // Try again after connect
                 return;
             }
 
@@ -62,6 +70,7 @@
             }
         });
     </script>
+
 </body>
 
 </html>

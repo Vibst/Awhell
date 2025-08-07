@@ -1,5 +1,6 @@
 package com.example.likecomment.service;
 
+import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -12,6 +13,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -47,19 +49,19 @@ public class LikeAndCommentService {
         try {
             Integer userId = like.getUserLikeId();
             boolean isLike = like.isLike();
-            String apiUrl = "http://localhost:9099/api/v2/users/getUsersById/" + userId;
+            String apiUrl = "http://localhost:9095/api/v2/users/getUsersById/" + userId;
 
-            ResponseEntity<usersModel> model = restTemplate.getForEntity(apiUrl, usersModel.class);
+            ResponseEntity<usersModel> model = restTemplate.exchange(apiUrl, HttpMethod.POST, null, usersModel.class);
             usersModel returnUsers = model.getBody();
 
             if (returnUsers != null) {
 
-                if (isLike && Boolean.FALSE.equals(like.isPriviousLike())) {
+                if (Boolean.TRUE.equals(isLike) && (Boolean.FALSE.equals(like.isPriviousLike()))) {
                     if (countLikes.containsKey(userId)) {
                         logger.info("User {} already liked this post", userId);
                         throw new IllegalStateException("User already liked the post");
                     } else {
-                        if (returnUsers.equals(userId)) {
+                        if (returnUsers.getUserId().equals(userId)) {
                             countLikes.put(userId, returnUsers.getUserId());
                             LikePost post = new LikePost();
                             post.setActive(true);
@@ -67,6 +69,7 @@ public class LikeAndCommentService {
                             post.setLikeUserActive(true);
                             post.setUserLikeId(userId);
                             post.setCountLike(like.getCountLike() + 1); // increment count
+                            post.setUserLikeId(returnUsers.getUserId());
 
                             LikePost savedPost = repositoryService.save(post);
                             // BeanUtils.copyProperties(savedPost, returnValue);

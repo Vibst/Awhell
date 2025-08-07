@@ -1,6 +1,7 @@
 package com.example.likecomment.entity;
 
 import com.example.likecomment.model.UserSendPostModel;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -27,6 +28,7 @@ public class LikePost {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long likeId;
 
+    @JsonProperty("isIsLike")
     private boolean isLike;
 
     private Integer countLike;
@@ -36,9 +38,12 @@ public class LikePost {
     private UserSendPostModel userLike;
 
     private Integer userLikeId;
+    @JsonProperty("likeUserActive")
     private boolean likeUserActive;
 
+    @JsonProperty("isActive")
     private boolean isActive;
 
+    @JsonProperty("priviousLike")
     private boolean priviousLike;
 }

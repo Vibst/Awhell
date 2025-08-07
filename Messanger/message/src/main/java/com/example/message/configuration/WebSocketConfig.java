@@ -6,19 +6,19 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
-@EnableWebSocketMessageBroker
 @Configuration
-public class WebConfig implements WebSocketMessageBrokerConfigurer {
-
-    @Override
-    public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.enableSimpleBroker("/topic"); // Subscribe to messages here
-        registry.setApplicationDestinationPrefixes("/app"); //
-    }
+@EnableWebSocketMessageBroker
+public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
+        // This must match the frontend's SockJS URL
         registry.addEndpoint("/ws-chat").setAllowedOriginPatterns("*").withSockJS();
     }
 
+    @Override
+    public void configureMessageBroker(MessageBrokerRegistry config) {
+        config.enableSimpleBroker("/topic"); // Enable prefix for topic
+        config.setApplicationDestinationPrefixes("/app"); // Prefix used for @MessageMapping
+    }
 }

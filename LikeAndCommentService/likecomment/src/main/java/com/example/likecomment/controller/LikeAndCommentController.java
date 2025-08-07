@@ -24,18 +24,16 @@ import com.example.likecomment.model.LikePostModel;
 import com.example.likecomment.service.LikeAndCommentService;
 
 @RestController
-@RequestMapping("/like")
+@RequestMapping("/api/v2/like")
 @CrossOrigin(origins = "http://localhost:3000")
 public class LikeAndCommentController {
-      private static final Logger logger = LogManager.getLogger(LikeAndCommentController.class);
+    private static final Logger logger = LogManager.getLogger(LikeAndCommentController.class);
 
+    @Autowired
+    private LikeAndCommentService LikeService;
 
-      @Autowired
-      private LikeAndCommentService LikeService;
-
-
-      @PostMapping(value = "/createLike", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<LikePostModel> createLike(@RequestBody LikePost like){
+    @PostMapping(value = "/createLike", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<LikePostModel> createLike(@RequestBody LikePost like) {
         if (like == null) {
             logger.warn("User is not associated with the post!");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
@@ -47,15 +45,14 @@ public class LikeAndCommentController {
             return ResponseEntity.status(HttpStatus.CREATED).body(model);
         } catch (IllegalStateException e) {
             logger.warn("Duplicate like attempt: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(null); 
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
         } catch (Exception e) {
             logger.error("Error in createLike: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
-
-     @GetMapping("/{likeId}")
+    @GetMapping("/{likeId}")
     public ResponseEntity<LikePostModel> getSpecificLike(@PathVariable("likeId") Long likeId) {
         try {
             LikePostModel returnPost = LikeService.findByLikeId(likeId);
@@ -69,7 +66,6 @@ public class LikeAndCommentController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-
 
     @GetMapping("/getAllPost")
     public ResponseEntity<List<LikePostModel>> getAllPosts() {
@@ -86,9 +82,7 @@ public class LikeAndCommentController {
         }
     }
 
-
-
-     @DeleteMapping("/delete/{likeId}")
+    @DeleteMapping("/delete/{likeId}")
     public ResponseEntity<LikePostModel> deleteSpecificLike(@PathVariable Long likeId) {
         try {
             LikePostModel deletedPost = LikeService.deletespecificLike(likeId);
@@ -97,11 +91,11 @@ public class LikeAndCommentController {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
             return ResponseEntity.ok(deletedPost);
-        } catch (Exception e) {            logger.error("Error in deleteSpecificPost: {}", e.getMessage(), e);
+        } catch (Exception e) {
+            logger.error("Error in deleteSpecificPost: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-
 
     @DeleteMapping("/delete")
     public ResponseEntity<String> deleteAllPosts() {
@@ -118,10 +112,8 @@ public class LikeAndCommentController {
         }
     }
 
-
-
     @PostMapping(value = "/createComment", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<CommentPostModel> createComment(@RequestBody CommentPost comment){
+    public ResponseEntity<CommentPostModel> createComment(@RequestBody CommentPost comment) {
         if (comment == null) {
             logger.warn("User is not associated with the post!");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
@@ -133,7 +125,7 @@ public class LikeAndCommentController {
             return ResponseEntity.status(HttpStatus.CREATED).body(model);
         } catch (IllegalStateException e) {
             logger.warn("Duplicate like attempt: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(null); 
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
         } catch (Exception e) {
             logger.error("Error in createLike: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -154,6 +146,5 @@ public class LikeAndCommentController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-
 
 }
