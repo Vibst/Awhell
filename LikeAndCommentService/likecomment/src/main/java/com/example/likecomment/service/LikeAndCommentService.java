@@ -11,7 +11,7 @@ import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +26,7 @@ import com.example.likecomment.model.usersModel;
 import com.example.likecomment.repository.CommentRepository;
 import com.example.likecomment.repository.LikeAndCommentRepository;
 
+import ch.qos.logback.core.joran.util.beans.BeanUtil;
 import ch.qos.logback.core.util.StringUtil;
 
 @Service
@@ -176,6 +177,8 @@ public class LikeAndCommentService {
                 returnValue.setUserLike(dbValue.get().getUserLike());
                 returnValue.setUserLikeId(dbValue.get().getUserLikeId());
 
+                repositoryService.deleteById(likeId);
+
                 return returnValue;
 
             }
@@ -206,14 +209,24 @@ public class LikeAndCommentService {
 
     public CommentPostModel createComment(CommentPost comment) {
         try {
+
+            // please validate the commented User is exess in dataBase or Not ? and how can
+            // validate or not ?
+
+            // please give me a proper response Body like 'commentedUser', 'commentTime',
+            // 'commentId' and etc
+
             String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(Calendar.getInstance().getTime());
             CommentPostModel modelValue = new CommentPostModel();
+            CommentPost returnValue = new CommentPost();
             modelValue.setCommentCreatedBy("admin");
             modelValue.setActiveComment(true);
             modelValue.setCommentMsg(comment.getCommentMsg());
             modelValue.setCommentTime(timeStamp);
             modelValue.setCommentedUserId(comment.getCommentedUserId());
+            BeanUtils.copyProperties(modelValue, returnValue);
 
+            commentServiceRepo.save(returnValue);
             return modelValue;
 
         } catch (Exception e) {

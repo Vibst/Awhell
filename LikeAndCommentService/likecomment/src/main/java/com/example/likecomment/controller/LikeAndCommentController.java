@@ -52,7 +52,7 @@ public class LikeAndCommentController {
         }
     }
 
-    @GetMapping("/{likeId}")
+    @PostMapping("/{likeId}")
     public ResponseEntity<LikePostModel> getSpecificLike(@PathVariable("likeId") Long likeId) {
         try {
             LikePostModel returnPost = LikeService.findByLikeId(likeId);
@@ -67,7 +67,7 @@ public class LikeAndCommentController {
         }
     }
 
-    @GetMapping("/getAllPost")
+    @PostMapping("/getAllPost")
     public ResponseEntity<List<LikePostModel>> getAllPosts() {
         try {
             List<LikePostModel> allPosts = LikeService.getAllLike();
@@ -82,7 +82,7 @@ public class LikeAndCommentController {
         }
     }
 
-    @DeleteMapping("/delete/{likeId}")
+    @PostMapping("/delete/{likeId}")
     public ResponseEntity<LikePostModel> deleteSpecificLike(@PathVariable Long likeId) {
         try {
             LikePostModel deletedPost = LikeService.deletespecificLike(likeId);
@@ -97,7 +97,7 @@ public class LikeAndCommentController {
         }
     }
 
-    @DeleteMapping("/delete")
+    @PostMapping("/delete")
     public ResponseEntity<String> deleteAllPosts() {
         try {
             String result = LikeService.deleteAllLikes();
@@ -132,7 +132,7 @@ public class LikeAndCommentController {
         }
     }
 
-    @GetMapping("/getAllComments")
+    @PostMapping("/getAllComments")
     public ResponseEntity<List<CommentPostModel>> getAllComment() {
         try {
             List<CommentPostModel> allPosts = LikeService.getAllComment();

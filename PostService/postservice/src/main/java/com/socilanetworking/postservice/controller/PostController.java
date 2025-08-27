@@ -41,7 +41,7 @@ public class PostController {
         }
     }
 
-    @GetMapping("/{postId}")
+    @PostMapping("/{postId}")
     public ResponseEntity<PostModel> getSpecificPost(@PathVariable Long postId) {
         try {
             PostModel returnPost = postService.findByPostId(postId);
@@ -56,7 +56,7 @@ public class PostController {
         }
     }
 
-    @GetMapping("/getAllPost")
+    @PostMapping("/getAllPost")
     public ResponseEntity<List<Post>> getAllPosts() {
         try {
             List<Post> allPosts = postService.getAllPost();
@@ -71,7 +71,7 @@ public class PostController {
         }
     }
 
-    @DeleteMapping("/delete/{postId}")
+    @PostMapping("/delete/{postId}")
     public ResponseEntity<PostModel> deleteSpecificPost(@PathVariable Long postId) {
         try {
             PostModel deletedPost = postService.deletespecificPost(postId);
@@ -86,7 +86,7 @@ public class PostController {
         }
     }
 
-    @DeleteMapping("/delete")
+    @PostMapping("/delete")
     public ResponseEntity<String> deleteAllPosts() {
         try {
             String result = postService.deleteAllPost();
@@ -100,5 +100,8 @@ public class PostController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+    // please create a Api update Post And how can get validate the user those are
+    // post the content and please createa an Api with extra and using AI/ ML Algo
 
 }
