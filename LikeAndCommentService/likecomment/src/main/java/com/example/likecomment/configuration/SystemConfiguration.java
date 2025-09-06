@@ -7,6 +7,7 @@ import org.ini4j.Ini;
 import org.ini4j.IniPreferences;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
@@ -28,7 +29,7 @@ public class SystemConfiguration {
     private String prometheusIp;
     private String prometheusPort;
 
-    @Value("${app.config}")  
+    @Value("${app.config}")
     private String configPath;
 
     @PostConstruct
@@ -42,7 +43,7 @@ public class SystemConfiguration {
     public void readConfigFile() {
         try {
 
-            InputStream input =new FileInputStream(configPath);
+            InputStream input = new FileInputStream(configPath);
             Ini ini = new Ini(input);
             java.util.prefs.Preferences configuration = new IniPreferences(ini);
 
@@ -65,7 +66,8 @@ public class SystemConfiguration {
     }
 
     @Bean
-    public RestTemplate restTemplate(){
+    @LoadBalanced
+    public RestTemplate restTemplate() {
         return new RestTemplate();
     }
 
