@@ -61,6 +61,9 @@ public class UserAuthenticationService {
     public Users getUsersById(Integer usrId) {
         try {
             Optional<Users> user = this.userAuthRepository.findById(usrId);
+            System.out.println("Starting to sleep");
+            Thread.sleep(15000);
+            System.out.println("Finished sleeping");
 
             if (user.isPresent()) {
                 return user.get();

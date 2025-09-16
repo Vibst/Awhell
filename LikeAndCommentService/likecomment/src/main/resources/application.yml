@@ -13,7 +13,7 @@ spring:
       ddl-auto: update
 
   application:
-    name: POST-SERVICE
+    name: LIKECOMMENT-SERVICE
 
   properties:
       hibernate:
@@ -41,3 +41,45 @@ eureka:
   #   instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
 
 
+#  resiliance4 j
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+    health:
+      show-details: always
+      enabled: true
+  
+#  circuitbreaker:
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      likeCommentServiceCircuitBreaker:
+        registerHealthIndicator: true
+        sliding-window-type: COUNT_BASED
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+
+
+#  Resiliance4j Time out 
+
+  timelimiter:
+    instances:
+      likeCommentServiceTimeLimiter:
+        timeoutDuration: 10s
+
+
+# Retry
+  retry.instances:
+    likeCommentServiceRetry:
+      maxAttempts: 5
+      waitDuration: 3s
+      

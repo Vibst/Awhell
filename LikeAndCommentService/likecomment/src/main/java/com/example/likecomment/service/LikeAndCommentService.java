@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -15,7 +16,9 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import com.example.likecomment.entity.CommentPost;
@@ -26,8 +29,9 @@ import com.example.likecomment.model.usersModel;
 import com.example.likecomment.repository.CommentRepository;
 import com.example.likecomment.repository.LikeAndCommentRepository;
 
-import ch.qos.logback.core.joran.util.beans.BeanUtil;
-import ch.qos.logback.core.util.StringUtil;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
+import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
 
 @Service
 public class LikeAndCommentService {
@@ -35,83 +39,103 @@ public class LikeAndCommentService {
     private static final Logger logger = LogManager.getLogger(LikeAndCommentService.class);
     private final Map<Integer, Integer> countLikes = new HashMap<>();
 
-    @Autowired
     private LikeAndCommentRepository repositoryService;
 
-    @Autowired
     private CommentRepository commentServiceRepo;
 
-    @Autowired
     private RestTemplate restTemplate;
 
-    public LikePostModel createLike(LikePost like) {
-        LikePostModel returnValue = new LikePostModel();
+    public LikeAndCommentService(RestTemplate restTemplate, LikeAndCommentRepository repositoryService,
+            CommentRepository commentServiceRepo) {
+        this.restTemplate = restTemplate;
+        this.repositoryService = repositoryService;
+        this.commentServiceRepo = commentServiceRepo;
+    }
 
-        try {
-            Integer userId = like.getUserLikeId();
-            boolean isLike = like.isLike();
-            String apiUrl = "http://localhost:9095/api/v2/users/getUsersById/" + userId;
+    
+    @CircuitBreaker(name = "likeCommentServiceCircuitBreaker", fallbackMethod = "createLikeFallback")
+    @TimeLimiter(name = "likeCommentServiceTimeLimiter")
+    @Retry(name = "likeCommentServiceRetry")
+    public CompletableFuture<LikePostModel> createLike(LikePost like) {
+        return CompletableFuture.supplyAsync(() -> {
+            LikePostModel returnValue = new LikePostModel();
+            usersModel returnUsers = new usersModel();
 
-            ResponseEntity<usersModel> model = restTemplate.exchange(apiUrl, HttpMethod.POST, null, usersModel.class);
-            usersModel returnUsers = model.getBody();
+            try {
+                Integer userId = like.getUserLikeId();
+                boolean isLike = like.isLike();
 
-            if (returnUsers != null) {
+                String apiUrl = "http://USERS/api/v2/users/getUsersById/" + userId;
 
-                if (Boolean.TRUE.equals(isLike) && (Boolean.FALSE.equals(like.isPriviousLike()))) {
-                    if (countLikes.containsKey(userId)) {
-                        logger.info("User {} already liked this post", userId);
-                        throw new IllegalStateException("User already liked the post");
-                    } else {
-                        if (returnUsers.getUserId().equals(userId)) {
-                            countLikes.put(userId, returnUsers.getUserId());
-                            LikePost post = new LikePost();
-                            post.setActive(true);
-                            post.setLike(true);
-                            post.setLikeUserActive(true);
-                            post.setUserLikeId(userId);
-                            post.setCountLike(like.getCountLike() + 1); // increment count
-                            post.setUserLikeId(returnUsers.getUserId());
-
-                            LikePost savedPost = repositoryService.save(post);
-                            // BeanUtils.copyProperties(savedPost, returnValue);
-                            returnValue.setActive(savedPost.isActive());
-                            returnValue.setCountLike(savedPost.getCountLike());
-
-                        }
-                        return returnValue;
-
-                    }
-                } else if (Boolean.TRUE.equals(like.isPriviousLike())) {
-
-                    countLikes.remove(userId);
-                    LikePost post = new LikePost();
-                    post.setActive(true);
-                    post.setLike(false);
-                    post.setLikeUserActive(false);
-                    post.setUserLikeId(userId);
-                    post.setCountLike(like.getCountLike() - 1); // decrement count
-
-                    LikePost savedPost = repositoryService.save(post);
-                    // BeanUtils.copyProperties(savedPost, returnValue);
-                    returnValue.setActive(savedPost.isActive());
-                    returnValue.setCountLike(savedPost.getCountLike());
-                    returnValue.setLike(savedPost.isLike());
-                    returnValue.setLikeUserActive(savedPost.isLikeUserActive());
-
+                try {
+                    ResponseEntity<usersModel> model = restTemplate.exchange(apiUrl, HttpMethod.POST, null,
+                            usersModel.class);
+                    returnUsers = model.getBody();
+                } catch (RestClientException e) {
+                    logger.error("Error calling USERS service: {}", e.getMessage());
+                    throw e;
                 }
 
-            } else {
-                System.out.println("User Is Not Exit In The DB .." + returnUsers.getUserId());
+                if (returnUsers != null) {
+                    if (Boolean.TRUE.equals(isLike) && (Boolean.FALSE.equals(like.isPriviousLike()))) {
+                        if (countLikes.containsKey(userId)) {
+                            logger.info("User {} already liked this post", userId);
+                            throw new IllegalStateException("User already liked the post");
+                        } else {
+                            if (returnUsers.getUserId().equals(userId)) {
+                                countLikes.put(userId, returnUsers.getUserId());
+                                LikePost post = new LikePost();
+                                post.setActive(true);
+                                post.setLike(true);
+                                post.setLikeUserActive(true);
+                                post.setUserLikeId(userId);
+                                post.setCountLike(like.getCountLike() + 1);
 
+                                LikePost savedPost = repositoryService.save(post);
+                                returnValue.setActive(savedPost.isActive());
+                                returnValue.setCountLike(savedPost.getCountLike());
+                            }
+                            return returnValue;
+                        }
+                    } else if (Boolean.TRUE.equals(like.isPriviousLike())) {
+                        countLikes.remove(userId);
+                        LikePost post = new LikePost();
+                        post.setActive(true);
+                        post.setLike(false);
+                        post.setLikeUserActive(false);
+                        post.setUserLikeId(userId);
+                        post.setCountLike(like.getCountLike() - 1);
+
+                        LikePost savedPost = repositoryService.save(post);
+                        returnValue.setActive(savedPost.isActive());
+                        returnValue.setCountLike(savedPost.getCountLike());
+                        returnValue.setLike(savedPost.isLike());
+                        returnValue.setLikeUserActive(savedPost.isLikeUserActive());
+                    }
+                } else {
+                    logger.warn("User does not exist in DB");
+                }
+
+                return returnValue;
+
+            } catch (Exception e) {
+                logger.error("Error in createLike(): {}", e.getMessage());
+                throw new RuntimeException(e);
             }
-
-            return returnValue;
-
-        } catch (Exception e) {
-            logger.error("Error in createLike(): {}", e.getMessage());
-            return null;
-        }
+        });
     }
+
+    public CompletableFuture<LikePostModel> createLikeFallback(LikePost like, Throwable throwable) {
+        logger.error("Fallback triggered for createLike due to: {}", throwable.getMessage());
+        LikePostModel fallbackValue = new LikePostModel();
+        fallbackValue.setActive(false);
+        fallbackValue.setCountLike(like.getCountLike());
+        fallbackValue.setLike(false);
+        fallbackValue.setLikeUserActive(false);
+        logger.info("The FallBack Value is : {}", fallbackValue);
+        return CompletableFuture.completedFuture(fallbackValue);
+    }
+
 
     public LikePostModel findByLikeId(Long likeId) {
         LikePostModel result = new LikePostModel();

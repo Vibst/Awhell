@@ -16,7 +16,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 @RestController
-@RequestMapping("/posts")
+@RequestMapping("api/v2/posts")
 public class PostController {
 
     private static final Logger logger = LogManager.getLogger(PostController.class);

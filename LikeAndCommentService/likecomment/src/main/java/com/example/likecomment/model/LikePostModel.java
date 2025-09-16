@@ -3,9 +3,11 @@ package com.example.likecomment.model;
 import jakarta.persistence.Transient;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 @Getter
 @Setter
+@ToString
 public class LikePostModel {
     private Long likeId;
 

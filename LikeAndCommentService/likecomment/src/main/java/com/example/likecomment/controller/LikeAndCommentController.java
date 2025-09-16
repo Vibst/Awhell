@@ -1,6 +1,7 @@
 package com.example.likecomment.controller;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -23,6 +24,8 @@ import com.example.likecomment.model.CommentPostModel;
 import com.example.likecomment.model.LikePostModel;
 import com.example.likecomment.service.LikeAndCommentService;
 
+
+
 @RestController
 @RequestMapping("/api/v2/like")
 @CrossOrigin(origins = "http://localhost:3000")
@@ -33,14 +36,14 @@ public class LikeAndCommentController {
     private LikeAndCommentService LikeService;
 
     @PostMapping(value = "/createLike", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<LikePostModel> createLike(@RequestBody LikePost like) {
+    public ResponseEntity<CompletableFuture<LikePostModel>> createLike(@RequestBody LikePost like) {
         if (like == null) {
             logger.warn("User is not associated with the post!");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
 
         try {
-            LikePostModel model = LikeService.createLike(like);
+            CompletableFuture<LikePostModel> model = LikeService.createLike(like);
             logger.info("Post liked successfully.");
             return ResponseEntity.status(HttpStatus.CREATED).body(model);
         } catch (IllegalStateException e) {
@@ -67,9 +70,10 @@ public class LikeAndCommentController {
         }
     }
 
-    @PostMapping("/getAllPost")
+    @GetMapping("/getAllPost")
     public ResponseEntity<List<LikePostModel>> getAllPosts() {
         try {
+            System.out.println("Reached getAllPosts endpoint");
             List<LikePostModel> allPosts = LikeService.getAllLike();
             if (allPosts.isEmpty()) {
                 logger.info("No posts available.");
