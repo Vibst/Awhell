@@ -24,7 +24,9 @@ import com.example.likecomment.model.CommentPostModel;
 import com.example.likecomment.model.LikePostModel;
 import com.example.likecomment.service.LikeAndCommentService;
 
-
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
+import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
 
 @RestController
 @RequestMapping("/api/v2/like")
@@ -35,24 +37,48 @@ public class LikeAndCommentController {
     @Autowired
     private LikeAndCommentService LikeService;
 
-    @PostMapping(value = "/createLike", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<CompletableFuture<LikePostModel>> createLike(@RequestBody LikePost like) {
-        if (like == null) {
-            logger.warn("User is not associated with the post!");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
+    // @PostMapping(value = "/createLike", produces =
+    // MediaType.APPLICATION_JSON_VALUE)
+    // public ResponseEntity<CompletableFuture<LikePostModel>>
+    // createLike(@RequestBody LikePost like) {
+    // if (like == null) {
+    // logger.warn("User is not associated with the post!");
+    // return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+    // }
 
-        try {
-            CompletableFuture<LikePostModel> model = LikeService.createLike(like);
+    // try {
+    // CompletableFuture<LikePostModel> model = LikeService.createLike(like);
+    // logger.info("Post liked successfully.");
+    // return ResponseEntity.status(HttpStatus.CREATED).body(model);
+    // } catch (IllegalStateException e) {
+    // logger.warn("Duplicate like attempt: {}", e.getMessage());
+    // return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
+    // } catch (Exception e) {
+    // logger.error("Error in createLike: {}", e.getMessage(), e);
+    // return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+    // }
+    // }
+    @PostMapping(value = "/createLike", produces = MediaType.APPLICATION_JSON_VALUE)
+    @CircuitBreaker(name = "likeCommentServiceCircuitBreaker", fallbackMethod = "likeFallback")
+    @Retry(name = "likeCommentServiceRetry")
+    @TimeLimiter(name = "likeCommentServiceTimeLimiter")
+    public CompletableFuture<ResponseEntity<LikePostModel>> createLike(@RequestBody LikePost like) {
+        return CompletableFuture.supplyAsync(() -> {
+            if (like == null) {
+                throw new IllegalArgumentException("User is not associated with the post!");
+            }
+            LikePostModel model = LikeService.createLike(like).block();
             logger.info("Post liked successfully.");
             return ResponseEntity.status(HttpStatus.CREATED).body(model);
-        } catch (IllegalStateException e) {
-            logger.warn("Duplicate like attempt: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
-        } catch (Exception e) {
-            logger.error("Error in createLike: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        });
+    }
+
+    public CompletableFuture<ResponseEntity<LikePostModel>> likeFallback(LikePost like, Throwable t) {
+        logger.error("Circuit breaker triggered. Fallback method invoked due to: {}", t.getMessage());
+        LikePostModel fallback = new LikePostModel();
+        fallback.setActive(false);
+        fallback.setCountLike(0);
+        return CompletableFuture.completedFuture(ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(fallback));
     }
 
     @PostMapping("/{likeId}")

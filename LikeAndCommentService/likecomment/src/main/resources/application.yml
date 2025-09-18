@@ -47,7 +47,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: "*"
+        include: health,info,circuitbreakers,*
     health:
       show-details: always
       enabled: true
@@ -64,7 +64,7 @@ resilience4j:
         minimumNumberOfCalls: 5
         permittedNumberOfCallsInHalfOpenState: 3
         waitDurationInOpenState: 5s
-        failureRateThreshold: 50
+        failureRateThreshold: 2
         eventConsumerBufferSize: 10
         automaticTransitionFromOpenToHalfOpenEnabled: true
 
@@ -75,6 +75,7 @@ resilience4j:
     instances:
       likeCommentServiceTimeLimiter:
         timeoutDuration: 10s
+        
 
 
 # Retry

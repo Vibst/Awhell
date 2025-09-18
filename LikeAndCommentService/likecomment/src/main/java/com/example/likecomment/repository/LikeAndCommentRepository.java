@@ -8,4 +8,6 @@ import com.example.likecomment.entity.LikePost;
 @Repository
 public interface LikeAndCommentRepository extends CrudRepository<LikePost, Long> {
 
+    
+
 }
