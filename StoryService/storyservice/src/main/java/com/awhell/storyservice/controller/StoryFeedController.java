@@ -33,6 +33,7 @@ public class StoryFeedController {
     @Bulkhead(name = "storyServiceBulkhead", type = Bulkhead.Type.SEMAPHORE, fallbackMethod = "fallbackCreateStoryAsync")
     public CompletableFuture<ResponseEntity<StoryFeedModel>> createStoryFeed(
             @RequestBody StoryFeedModel storyFeedRequest) {
+        System.out.println("================= CONTROLLER TRIGGER =====================");
 
         return CompletableFuture.supplyAsync(() -> {
             StoryFeedModel model = storyFeedService.createStoryFeed(storyFeedRequest);
@@ -57,6 +58,7 @@ public class StoryFeedController {
     @PostMapping("/async-data")
     public ResponseEntity<CompletableFuture<StoryFeedModel>> getDataAsync() {
         try {
+            System.out.println("================= CONTROLLER TRIGGER =====================");
 
             CompletableFuture<StoryFeedModel> modelData = this.storyFeedService.getAsyncData();
             return ResponseEntity.status(HttpStatus.ACCEPTED).body(modelData);
@@ -71,6 +73,7 @@ public class StoryFeedController {
     @PostMapping("/async-data-combine")
     public ResponseEntity<CompletableFuture<StoryFeedModel>> getDataAsyncCombine() {
         try {
+            System.out.println("================= CONTROLLER TRIGGER =====================");
 
             CompletableFuture<StoryFeedModel> modelData = this.storyFeedService.getAsyncDataCombine();
             return ResponseEntity.status(HttpStatus.ACCEPTED).body(modelData);
@@ -81,4 +84,5 @@ public class StoryFeedController {
         }
 
     }
+
 }
