@@ -1,0 +1,58 @@
+
+
+server:
+  port: 9097
+
+spring:
+  application:
+    name: story-service
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+  instance:
+    leaseRenewalIntervalInSeconds: 5
+    leaseExpirationDurationInSeconds: 10
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info, prometheus
+  endpoint:
+    health:
+      show-details: always
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      storyServiceCircuitBreaker:
+        registerHealthIndicator: true
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 5
+        minimum-number-of-calls: 3
+        permitted-number-of-calls-in-half-open-state: 2
+        wait-duration-in-open-state: 10s
+        failure-rate-threshold: 50
+  retry:
+    instances:
+      storyServiceRetry:
+        max-attempts: 3
+        wait-duration: 2s
+  timelimiter:
+    instances:
+      storyServiceTimeLimiter:
+        timeout-duration: 5s
+  ratelimiter:
+    instances:
+      storyServiceRateLimiter:
+        limit-for-period: 5
+        limit-refresh-period: 10s
+        timeout-duration: 1s
+  bulkhead:
+    instances:
+      storyServiceBulkhead:
+        max-concurrent-calls: 5
+        

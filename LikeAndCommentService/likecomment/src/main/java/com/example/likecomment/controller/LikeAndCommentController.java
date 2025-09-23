@@ -77,7 +77,7 @@ public class LikeAndCommentController {
         logger.error("Circuit breaker triggered. Fallback method invoked due to: {}", t.getMessage());
         LikePostModel fallback = new LikePostModel();
         fallback.setActive(false);
-        fallback.setCountLike(0);
+        fallback.setCountLike(-1);
         return CompletableFuture.completedFuture(ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(fallback));
     }
 
