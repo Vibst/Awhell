@@ -25,6 +25,21 @@ management:
     health:
       show-details: always
 
+# trace distributed Logics
+  tracing:
+    enabled: true
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint:  http://localhost:4318/v1/traces
+
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - traceId=%X{traceId} spanId=%X{spanId} - %msg%n" 
+
+
+
 resilience4j:
   circuitbreaker:
     instances:
@@ -55,4 +70,8 @@ resilience4j:
     instances:
       storyServiceBulkhead:
         max-concurrent-calls: 5
-        
+
+
+
+
+ 

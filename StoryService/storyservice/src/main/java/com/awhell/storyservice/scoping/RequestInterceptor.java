@@ -1,4 +1,4 @@
-package com.awhell.storyservice.helper;
+package com.awhell.storyservice.scoping;
 
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
@@ -30,7 +30,12 @@ public class RequestInterceptor implements HandlerInterceptor {
             throws Exception {
         System.out.println("Request Interceptor Pre Handler" + request.getRequestURI());
 
-        return HandlerInterceptor.super.preHandle(request, response, handler); // agar false return kiya to controller call nahi hoga
+        return HandlerInterceptor.super.preHandle(request, response, handler); // agar false return kiya to controller
+                                                                               // call nahi hoga
     }
 
 }
+
+// Interceptor is only two class is used 1 - WebConfig.java, and second is
+// RequestInterceptor.java and it is dispatcher controller level before
+// Controller .

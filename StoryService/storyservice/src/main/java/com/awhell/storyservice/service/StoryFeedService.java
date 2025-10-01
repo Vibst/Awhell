@@ -3,6 +3,7 @@ package com.awhell.storyservice.service;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
@@ -11,9 +12,17 @@ import org.springframework.web.client.RestTemplate;
 
 import com.awhell.storyservice.model.StoryFeedModel;
 import com.awhell.storyservice.model.UsersModel;
+import com.awhell.storyservice.scoping.StoryCreateTag;
+import com.awhell.storyservice.scoping.UserCheckTage;
 
 @Service
 public class StoryFeedService {
+
+    @Autowired(required = false)
+    private UserCheckTage userCheckTage;
+
+    @Autowired(required = false)
+    private StoryCreateTag storycreateTag;
 
     private final RestTemplate restTemplate;
 
