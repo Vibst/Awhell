@@ -1,0 +1,93 @@
+version: "3.8"
+
+services:
+  registryserver:
+    build: ./RegistreyServer/serverregister
+    container_name: registryserver
+    ports:
+      - "8761:9091"
+    networks:
+      - spring-net
+
+  userauthenticate:
+    build: ./UerAuthenticateService/users
+    container_name: userauthenticate
+    depends_on:
+      - registryserver
+    ports:
+      - "9095:8081"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://registryserver:8761/eureka/
+    networks:
+      - spring-net
+
+  storyservice:
+    build: ./StoryService/storyservice
+    container_name: storyservice
+    depends_on:
+      - registryserver
+      - userauthenticate
+    ports:
+      - "9090:8082"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://registryserver:8761/eureka/
+    networks:
+      - spring-net
+
+  postservice:
+    build: ./PostService/postservice
+    container_name: postservice
+    depends_on:
+      - registryserver
+    ports:
+      - "9098:8083"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://registryserver:8761/eureka/
+    networks:
+      - spring-net
+
+  likecommentservice:
+    build: ./LikeAndCommentService/likecomment
+    container_name: likeservice
+    depends_on:
+      - registryserver
+      - postservice
+    ports:
+      - "9099:8084"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://registryserver:8761/eureka/
+    networks:
+      - spring-net
+
+  messanger:
+    build: ./Messanger/message
+    container_name: messanger
+    depends_on:
+      - registryserver
+    ports:
+      - "9097:8085"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://registryserver:8761/eureka/
+    networks:
+      - spring-net
+
+  apigateway:
+    build: ./ApigatewayService
+    container_name: apigateway
+    depends_on:
+      - registryserver
+      - userauthenticate
+      - storyservice
+      - postservice
+      - likecommentservice
+      - messanger
+    ports:
+      - "9096:8080"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://registryserver:8761/eureka/
+    networks:
+      - spring-net
+
+networks:
+  spring-net:
+    driver: bridge
