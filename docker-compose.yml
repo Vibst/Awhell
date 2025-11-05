@@ -5,7 +5,7 @@ services:
     build: ./RegistreyServer/serverregister
     container_name: registryserver
     ports:
-      - "8761:9091"
+      - "8761:8761"
     networks:
       - spring-net
 
@@ -48,7 +48,7 @@ services:
 
   likecommentservice:
     build: ./LikeAndCommentService/likecomment
-    container_name: likeservice
+    container_name: likecommentservice
     depends_on:
       - registryserver
       - postservice
@@ -72,7 +72,7 @@ services:
       - spring-net
 
   apigateway:
-    build: ./ApigatewayService
+    build: ./ApigatewayService/apigateway
     container_name: apigateway
     depends_on:
       - registryserver
