@@ -10,7 +10,6 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 
-import org.aspectj.weaver.tools.Trace;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 

@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -26,5 +27,10 @@ public class GlobalExceptionHandler {
 
     }
 
-    
+    @ExceptionHandler(NoHandlerFoundException.class)
+    public ResponseEntity<String> handle404(NoHandlerFoundException ex) {
+        System.out.println("404 Not Found: " + ex.getRequestURL());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Resource not found");
+    }
+
 }
